@@ -4,6 +4,7 @@ import SpotifyWebApi from "spotify-web-api-node";
 import { Container, Form } from "react-bootstrap";
 
 import TrackSearchResult from "../components/TrackSearchResult";
+import SpotifyWebPlayer from "../components/SpotifyWebPlayer";
 import useAuth from "../hooks/useAuth";
 
 const spotifyWebAPI = new SpotifyWebApi({
@@ -16,6 +17,12 @@ const DashboardScreen = ({ code }) => {
 
 	const [searchTerms, setSearchTerms] = useState("");
 	const [searchResults, setSearchResults] = useState([]);
+	const [playingTrack, setPlayingTrack] = useState();
+
+	const chooseTrack = (track) => {
+		setPlayingTrack(track);
+		setSearchTerms("");
+	};
 
 	useEffect(() => {
 		if (!accessToken) return;
@@ -67,10 +74,19 @@ const DashboardScreen = ({ code }) => {
 			></Form.Control>
 			<div className='flex-grow-1 my-2' style={{ overflowY: "auto" }}>
 				{searchResults.map((track) => (
-					<TrackSearchResult track={track} key={track.uri} />
+					<TrackSearchResult
+						track={track}
+						key={track.uri}
+						chooseTrack={chooseTrack}
+					/>
 				))}
 			</div>
-			<div className='py-2'>Bottom</div>
+			<div className='py-2'>
+				<SpotifyWebPlayer
+					accessToken={accessToken}
+					trackUri={playingTrack?.uri}
+				/>
+			</div>
 		</Container>
 	);
 };
