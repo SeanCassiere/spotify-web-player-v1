@@ -31,7 +31,7 @@ const DashboardScreen = ({ code }) => {
 		if (!playingTrack) return;
 
 		axios
-			.get("http://localhost:3001/lyrics", {
+			.get(`${process.env.REACT_APP_SERVER_BASE}/lyrics`, {
 				params: {
 					title: playingTrack.title,
 					artist: playingTrack.artistNames[0],

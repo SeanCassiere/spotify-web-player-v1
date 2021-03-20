@@ -9,7 +9,7 @@ const useAuth = (code) => {
 	// Login Logic
 	useEffect(() => {
 		axios
-			.post("http://localhost:3001/login", { code })
+			.post(`${process.env.REACT_APP_SERVER_BASE}/login`, { code })
 			.then((res) => {
 				setAccessToken(res.data.accessToken);
 				setRefreshToken(res.data.refreshToken);
@@ -25,7 +25,7 @@ const useAuth = (code) => {
 
 		const interval = setInterval(() => {
 			axios
-				.post("http://localhost:3001/refresh", { refreshToken })
+				.post(`${process.env.REACT_APP_SERVER_BASE}/refresh`, { refreshToken })
 				.then((res) => {
 					setAccessToken(res.data.accessToken);
 					setExpiresIn(res.data.expiresIn);
