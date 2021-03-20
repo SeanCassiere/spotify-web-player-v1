@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import SpotifyWebApi from "spotify-web-api-node";
+import axios from "axios";
 
 import { Container, Form } from "react-bootstrap";
 
@@ -18,11 +19,26 @@ const DashboardScreen = ({ code }) => {
 	const [searchTerms, setSearchTerms] = useState("");
 	const [searchResults, setSearchResults] = useState([]);
 	const [playingTrack, setPlayingTrack] = useState();
+	const [lyrics, setLyrics] = useState("");
 
 	const chooseTrack = (track) => {
 		setPlayingTrack(track);
 		setSearchTerms("");
+		setLyrics("");
 	};
+
+	useEffect(() => {
+		if (!playingTrack) return;
+
+		axios
+			.get("http://localhost:3001/lyrics", {
+				params: {
+					title: playingTrack.title,
+					artist: playingTrack.artistNames[0],
+				},
+			})
+			.then((res) => setLyrics(res.data.lyrics));
+	}, [playingTrack]);
 
 	useEffect(() => {
 		if (!accessToken) return;
@@ -80,6 +96,11 @@ const DashboardScreen = ({ code }) => {
 						chooseTrack={chooseTrack}
 					/>
 				))}
+				{searchResults.length === 0 && (
+					<div className='text-center' style={{ whiteSpace: "pre" }}>
+						{lyrics}
+					</div>
+				)}
 			</div>
 			<div className='py-2'>
 				<SpotifyWebPlayer
