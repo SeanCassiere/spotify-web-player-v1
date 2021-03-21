@@ -16,7 +16,9 @@ app.get("/lyrics", async (req, res) => {
 	console.log(
 		`req query artist: ${req.query.artist}\nreq query title: ${req.query.title}`
 	);
-	const lyrics = await lyricsFinder(req.query.artist, req.query.title);
+	const lyrics =
+		(await lyricsFinder(req.query.artist, req.query.title)) ||
+		"Could not find lyrics for this track.";
 	res.json({ lyrics });
 });
 
