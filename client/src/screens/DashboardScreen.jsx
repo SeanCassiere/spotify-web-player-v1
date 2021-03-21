@@ -107,7 +107,32 @@ const DashboardScreen = ({ code }) => {
 				});
 				break;
 			default:
-				return null;
+				spotifyWebAPI.searchTracks(searchTerms).then((res) => {
+					if (cancelSearch) return;
+
+					setSearchResults(
+						res.body.tracks.items.map((track) => {
+							const smallestAlbumArt = track.album.images.reduce(
+								(smallest, image) => {
+									if (image.height < smallest) return image;
+									return smallest;
+								},
+								track.album.images[0]
+							);
+
+							const trackArtists = track.artists.map((artist) => {
+								return artist.name;
+							});
+
+							return {
+								artistNames: trackArtists,
+								title: track.name,
+								uri: track.uri,
+								albumUrl: smallestAlbumArt.url,
+							};
+						})
+					);
+				});
 		}
 
 		return () => (cancelSearch = true);
@@ -131,7 +156,7 @@ const DashboardScreen = ({ code }) => {
 					</div>
 				)}
 			</div>
-			<div className='py-2'>
+			<div className='pt-2'>
 				<SpotifyWebPlayer
 					accessToken={accessToken}
 					trackUri={playingTrack?.uri}
