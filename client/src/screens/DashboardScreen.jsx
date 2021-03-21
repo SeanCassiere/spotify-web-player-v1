@@ -10,6 +10,12 @@ import SearchBox from "../components/SearchBox";
 import useAuth from "../hooks/useAuth";
 import SearchTypeSelector from "../components/SearchTypeSelector";
 
+import {
+	TYPE_TRACKS,
+	TYPE_ARTISTS,
+	TYPE_PLAYLISTS,
+} from "../constants/searchTypeConstants";
+
 const spotifyWebAPI = new SpotifyWebApi({
 	clientId: process.env.REACT_APP_SPOTIFY_CLIENT_ID,
 	clientSecret: process.env.REACT_APP_SPOTIFY_CLIENT_SECRET,
@@ -18,7 +24,7 @@ const spotifyWebAPI = new SpotifyWebApi({
 const DashboardScreen = ({ code }) => {
 	const accessToken = useAuth(code);
 
-	const [searchType, setSearchType] = useState("tracks");
+	const [searchType, setSearchType] = useState(TYPE_TRACKS);
 	const [searchTerms, setSearchTerms] = useState("");
 	const [searchResults, setSearchResults] = useState([]);
 	const [playingTrack, setPlayingTrack] = useState();
@@ -58,7 +64,7 @@ const DashboardScreen = ({ code }) => {
 
 		let cancelSearch = false;
 		switch (searchType) {
-			case "tracks":
+			case TYPE_TRACKS:
 				spotifyWebAPI.searchTracks(searchTerms).then((res) => {
 					if (cancelSearch) return;
 
@@ -86,7 +92,7 @@ const DashboardScreen = ({ code }) => {
 					);
 				});
 				break;
-			case "playlists":
+			case TYPE_PLAYLISTS:
 				spotifyWebAPI.searchPlaylists(searchTerms).then((res) => {
 					if (cancelSearch) return;
 
@@ -104,6 +110,34 @@ const DashboardScreen = ({ code }) => {
 								artistNames: [playlist.owner.display_name],
 								title: playlist.name,
 								uri: playlist.uri,
+								albumUrl: smallestAlbumArt.url,
+							};
+						})
+					);
+				});
+				break;
+			case TYPE_ARTISTS:
+				spotifyWebAPI.searchTracks(`artist:${searchTerms}`).then((res) => {
+					if (cancelSearch) return;
+
+					setSearchResults(
+						res.body.tracks.items.map((track) => {
+							const smallestAlbumArt = track.album.images.reduce(
+								(smallest, image) => {
+									if (image.height < smallest) return image;
+									return smallest;
+								},
+								track.album.images[0]
+							);
+
+							const trackArtists = track.artists.map((artist) => {
+								return artist.name;
+							});
+
+							return {
+								artistNames: trackArtists,
+								title: track.name,
+								uri: track.uri,
 								albumUrl: smallestAlbumArt.url,
 							};
 						})

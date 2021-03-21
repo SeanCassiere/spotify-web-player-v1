@@ -1,0 +1,3 @@
+export const TYPE_TRACKS = "TYPE_TRACKS";
+export const TYPE_ARTISTS = "TYPE_ARTISTS";
+export const TYPE_PLAYLISTS = "TYPE_PLAYLISTS";
