@@ -24,6 +24,10 @@ const DashboardScreen = ({ code }) => {
 	const [playingTrack, setPlayingTrack] = useState();
 	const [lyrics, setLyrics] = useState("");
 
+	const setPlayingInfo = async (title, artist) => {
+		setPlayingTrack({ ...playingTrack, title, artistNames: [artist] });
+	};
+
 	const chooseTrack = (track) => {
 		setPlayingTrack(track);
 		setSearchTerms("");
@@ -85,7 +89,7 @@ const DashboardScreen = ({ code }) => {
 			case "playlists":
 				spotifyWebAPI.searchPlaylists(searchTerms).then((res) => {
 					if (cancelSearch) return;
-					console.log(res.body.playlists.items);
+
 					setSearchResults(
 						res.body.playlists.items.map((playlist) => {
 							const smallestAlbumArt = playlist.images.reduce(
@@ -158,6 +162,7 @@ const DashboardScreen = ({ code }) => {
 			</div>
 			<div className='pt-2'>
 				<SpotifyWebPlayer
+					setPlayingInfo={setPlayingInfo}
 					accessToken={accessToken}
 					trackUri={playingTrack?.uri}
 				/>

@@ -2,12 +2,7 @@ import React, { useState, useEffect } from "react";
 
 import SpotifyPlayer from "react-spotify-web-playback";
 
-const SpotifyWebPlayer = ({
-	accessToken,
-	trackUri,
-	playingTrack,
-	setPlayingTrack,
-}) => {
+const SpotifyWebPlayer = ({ accessToken, trackUri, setPlayingInfo }) => {
 	const [play, setPlay] = useState(false);
 
 	useEffect(() => setPlay(true), [trackUri]);
@@ -16,10 +11,11 @@ const SpotifyWebPlayer = ({
 	return (
 		<SpotifyPlayer
 			token={accessToken}
-			magnifySliderOnHover
 			showSaveIcon
 			callback={(s) => {
 				if (!s.isPlaying) setPlay(false);
+				if (s.type === "track_update")
+					setPlayingInfo(s.track.name, s.track.artists);
 			}}
 			play={play}
 			uris={trackUri ? [trackUri] : null}
