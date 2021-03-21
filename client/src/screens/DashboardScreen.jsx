@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import SpotifyWebApi from "spotify-web-api-node";
 import axios from "axios";
 
-import { Container, Form } from "react-bootstrap";
+import { Container } from "react-bootstrap";
 
 import TrackSearchResult from "../components/TrackSearchResult";
 import SpotifyWebPlayer from "../components/SpotifyWebPlayer";
+import SearchBox from "../components/SearchBox";
 import useAuth from "../hooks/useAuth";
+import SearchTypeSelector from "../components/SearchTypeSelector";
 
 const spotifyWebAPI = new SpotifyWebApi({
 	clientId: process.env.REACT_APP_SPOTIFY_CLIENT_ID,
@@ -16,6 +18,7 @@ const spotifyWebAPI = new SpotifyWebApi({
 const DashboardScreen = ({ code }) => {
 	const accessToken = useAuth(code);
 
+	const [searchType, setSearchType] = useState("tracks");
 	const [searchTerms, setSearchTerms] = useState("");
 	const [searchResults, setSearchResults] = useState([]);
 	const [playingTrack, setPlayingTrack] = useState();
@@ -82,12 +85,8 @@ const DashboardScreen = ({ code }) => {
 
 	return (
 		<Container className='d-flex flex-column py-2' style={{ height: "100vh" }}>
-			<Form.Control
-				placeholder='Search Songs/Artists'
-				type='search'
-				value={searchTerms}
-				onChange={(e) => setSearchTerms(e.target.value)}
-			></Form.Control>
+			<SearchTypeSelector setType={setSearchType} />
+			<SearchBox searchTerms={searchTerms} setSearchTerms={setSearchTerms} />
 			<div className='flex-grow-1 my-2' style={{ overflowY: "auto" }}>
 				{searchResults.map((track) => (
 					<TrackSearchResult
