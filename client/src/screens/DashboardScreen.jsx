@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import SpotifyWebApi from "spotify-web-api-node";
 import axios from "axios";
 
-import { Container, Form } from "react-bootstrap";
+import { Container } from "react-bootstrap";
 
 import TrackSearchResult from "../components/TrackSearchResult";
 import SpotifyWebPlayer from "../components/SpotifyWebPlayer";
+import SearchBox from "../components/SearchBox";
 import useAuth from "../hooks/useAuth";
+import SearchTypeSelector from "../components/SearchTypeSelector";
 
 const spotifyWebAPI = new SpotifyWebApi({
 	clientId: process.env.REACT_APP_SPOTIFY_CLIENT_ID,
@@ -16,10 +18,15 @@ const spotifyWebAPI = new SpotifyWebApi({
 const DashboardScreen = ({ code }) => {
 	const accessToken = useAuth(code);
 
+	const [searchType, setSearchType] = useState("tracks");
 	const [searchTerms, setSearchTerms] = useState("");
 	const [searchResults, setSearchResults] = useState([]);
 	const [playingTrack, setPlayingTrack] = useState();
 	const [lyrics, setLyrics] = useState("");
+
+	const setPlayingInfo = async (title, artist) => {
+		setPlayingTrack({ ...playingTrack, title, artistNames: [artist] });
+	};
 
 	const chooseTrack = (track) => {
 		setPlayingTrack(track);
@@ -50,44 +57,95 @@ const DashboardScreen = ({ code }) => {
 		if (!accessToken) return;
 
 		let cancelSearch = false;
-		spotifyWebAPI.searchTracks(searchTerms).then((res) => {
-			if (cancelSearch) return;
+		switch (searchType) {
+			case "tracks":
+				spotifyWebAPI.searchTracks(searchTerms).then((res) => {
+					if (cancelSearch) return;
 
-			setSearchResults(
-				res.body.tracks.items.map((track) => {
-					const smallestAlbumArt = track.album.images.reduce(
-						(smallest, image) => {
-							if (image.height < smallest) return image;
-							return smallest;
-						},
-						track.album.images[0]
+					setSearchResults(
+						res.body.tracks.items.map((track) => {
+							const smallestAlbumArt = track.album.images.reduce(
+								(smallest, image) => {
+									if (image.height < smallest) return image;
+									return smallest;
+								},
+								track.album.images[0]
+							);
+
+							const trackArtists = track.artists.map((artist) => {
+								return artist.name;
+							});
+
+							return {
+								artistNames: trackArtists,
+								title: track.name,
+								uri: track.uri,
+								albumUrl: smallestAlbumArt.url,
+							};
+						})
 					);
+				});
+				break;
+			case "playlists":
+				spotifyWebAPI.searchPlaylists(searchTerms).then((res) => {
+					if (cancelSearch) return;
 
-					const trackArtists = track.artists.map((artist) => {
-						return artist.name;
-					});
+					setSearchResults(
+						res.body.playlists.items.map((playlist) => {
+							const smallestAlbumArt = playlist.images.reduce(
+								(smallest, image) => {
+									if (image.height < smallest) return image;
+									return smallest;
+								},
+								playlist.images[0]
+							);
 
-					return {
-						artistNames: trackArtists,
-						title: track.name,
-						uri: track.uri,
-						albumUrl: smallestAlbumArt.url,
-					};
-				})
-			);
-		});
+							return {
+								artistNames: [playlist.owner.display_name],
+								title: playlist.name,
+								uri: playlist.uri,
+								albumUrl: smallestAlbumArt.url,
+							};
+						})
+					);
+				});
+				break;
+			default:
+				spotifyWebAPI.searchTracks(searchTerms).then((res) => {
+					if (cancelSearch) return;
+
+					setSearchResults(
+						res.body.tracks.items.map((track) => {
+							const smallestAlbumArt = track.album.images.reduce(
+								(smallest, image) => {
+									if (image.height < smallest) return image;
+									return smallest;
+								},
+								track.album.images[0]
+							);
+
+							const trackArtists = track.artists.map((artist) => {
+								return artist.name;
+							});
+
+							return {
+								artistNames: trackArtists,
+								title: track.name,
+								uri: track.uri,
+								albumUrl: smallestAlbumArt.url,
+							};
+						})
+					);
+				});
+		}
 
 		return () => (cancelSearch = true);
-	}, [searchTerms, accessToken]);
+	}, [searchTerms, accessToken, searchType]);
 
 	return (
 		<Container className='d-flex flex-column py-2' style={{ height: "100vh" }}>
-			<Form.Control
-				placeholder='Search Songs/Artists'
-				type='search'
-				value={searchTerms}
-				onChange={(e) => setSearchTerms(e.target.value)}
-			></Form.Control>
+			<SearchTypeSelector setType={setSearchType} />
+			<SearchBox searchTerms={searchTerms} setSearchTerms={setSearchTerms} />
 			<div className='flex-grow-1 my-2' style={{ overflowY: "auto" }}>
 				{searchResults.map((track) => (
 					<TrackSearchResult
@@ -102,8 +160,9 @@ const DashboardScreen = ({ code }) => {
 					</div>
 				)}
 			</div>
-			<div className='py-2'>
+			<div className='pt-2'>
 				<SpotifyWebPlayer
+					setPlayingInfo={setPlayingInfo}
 					accessToken={accessToken}
 					trackUri={playingTrack?.uri}
 				/>
