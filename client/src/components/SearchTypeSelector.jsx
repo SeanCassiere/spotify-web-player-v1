@@ -12,7 +12,6 @@ const SearchTypeSelector = ({ setType }) => {
 				defaultValue='tracks'
 			>
 				<option value='tracks'>Tracks</option>
-				<option value='albums'>Albums</option>
 				<option value='playlists'>Playlists</option>
 			</Form.Control>
 		</Form.Group>

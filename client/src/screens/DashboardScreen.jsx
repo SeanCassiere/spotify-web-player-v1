@@ -53,35 +53,65 @@ const DashboardScreen = ({ code }) => {
 		if (!accessToken) return;
 
 		let cancelSearch = false;
-		spotifyWebAPI.searchTracks(searchTerms).then((res) => {
-			if (cancelSearch) return;
+		switch (searchType) {
+			case "tracks":
+				spotifyWebAPI.searchTracks(searchTerms).then((res) => {
+					if (cancelSearch) return;
 
-			setSearchResults(
-				res.body.tracks.items.map((track) => {
-					const smallestAlbumArt = track.album.images.reduce(
-						(smallest, image) => {
-							if (image.height < smallest) return image;
-							return smallest;
-						},
-						track.album.images[0]
+					setSearchResults(
+						res.body.tracks.items.map((track) => {
+							const smallestAlbumArt = track.album.images.reduce(
+								(smallest, image) => {
+									if (image.height < smallest) return image;
+									return smallest;
+								},
+								track.album.images[0]
+							);
+
+							const trackArtists = track.artists.map((artist) => {
+								return artist.name;
+							});
+
+							return {
+								artistNames: trackArtists,
+								title: track.name,
+								uri: track.uri,
+								albumUrl: smallestAlbumArt.url,
+							};
+						})
 					);
+				});
+				break;
+			case "playlists":
+				spotifyWebAPI.searchPlaylists(searchTerms).then((res) => {
+					if (cancelSearch) return;
+					console.log(res.body.playlists.items);
+					setSearchResults(
+						res.body.playlists.items.map((playlist) => {
+							const smallestAlbumArt = playlist.images.reduce(
+								(smallest, image) => {
+									if (image.height < smallest) return image;
+									return smallest;
+								},
+								playlist.images[0]
+							);
 
-					const trackArtists = track.artists.map((artist) => {
-						return artist.name;
-					});
-
-					return {
-						artistNames: trackArtists,
-						title: track.name,
-						uri: track.uri,
-						albumUrl: smallestAlbumArt.url,
-					};
-				})
-			);
-		});
+							return {
+								artistNames: [playlist.owner.display_name],
+								title: playlist.name,
+								uri: playlist.uri,
+								albumUrl: smallestAlbumArt.url,
+							};
+						})
+					);
+				});
+				break;
+			default:
+				return null;
+		}
 
 		return () => (cancelSearch = true);
-	}, [searchTerms, accessToken]);
+	}, [searchTerms, accessToken, searchType]);
 
 	return (
 		<Container className='d-flex flex-column py-2' style={{ height: "100vh" }}>
