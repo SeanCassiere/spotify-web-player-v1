@@ -14,8 +14,10 @@ const SpotifyWebPlayer = ({ accessToken, trackUri, setPlayingInfo }) => {
 			showSaveIcon
 			callback={(s) => {
 				if (!s.isPlaying) setPlay(false);
-				if (s.type === "track_update")
-					setPlayingInfo(s.track.name, s.track.artists);
+				if (s.type === "track_update") {
+					const singleArtist = s.track.artists.split(",");
+					setPlayingInfo(s.track.name, singleArtist);
+				}
 			}}
 			play={play}
 			uris={trackUri ? [trackUri] : null}
