@@ -64,34 +64,6 @@ const DashboardScreen = ({ code }) => {
 
 		let cancelSearch = false;
 		switch (searchType) {
-			case TYPE_TRACKS:
-				spotifyWebAPI.searchTracks(searchTerms).then((res) => {
-					if (cancelSearch) return;
-
-					setSearchResults(
-						res.body.tracks.items.map((track) => {
-							const smallestAlbumArt = track.album.images.reduce(
-								(smallest, image) => {
-									if (image.height < smallest) return image;
-									return smallest;
-								},
-								track.album.images[0]
-							);
-
-							const trackArtists = track.artists.map((artist) => {
-								return artist.name;
-							});
-
-							return {
-								artistNames: trackArtists,
-								title: track.name,
-								uri: track.uri,
-								albumUrl: smallestAlbumArt.url,
-							};
-						})
-					);
-				});
-				break;
 			case TYPE_PLAYLISTS:
 				spotifyWebAPI.searchPlaylists(searchTerms).then((res) => {
 					if (cancelSearch) return;
@@ -116,36 +88,16 @@ const DashboardScreen = ({ code }) => {
 					);
 				});
 				break;
-			case TYPE_ARTISTS:
-				spotifyWebAPI.searchTracks(`artist:${searchTerms}`).then((res) => {
-					if (cancelSearch) return;
-
-					setSearchResults(
-						res.body.tracks.items.map((track) => {
-							const smallestAlbumArt = track.album.images.reduce(
-								(smallest, image) => {
-									if (image.height < smallest) return image;
-									return smallest;
-								},
-								track.album.images[0]
-							);
-
-							const trackArtists = track.artists.map((artist) => {
-								return artist.name;
-							});
-
-							return {
-								artistNames: trackArtists,
-								title: track.name,
-								uri: track.uri,
-								albumUrl: smallestAlbumArt.url,
-							};
-						})
-					);
-				});
-				break;
 			default:
-				spotifyWebAPI.searchTracks(searchTerms).then((res) => {
+				let apiSearchType;
+				// Setting the type of method to be called on the SpotifyWebAPI Object
+				if (searchType === TYPE_TRACKS) apiSearchType = "searchTracks";
+				if (searchType === TYPE_ARTISTS) apiSearchType = "searchTracks";
+
+				spotifyWebAPI[apiSearchType](
+					`${searchType === TYPE_ARTISTS && "artist:"}
+					${searchTerms}`
+				).then((res) => {
 					if (cancelSearch) return;
 
 					setSearchResults(
