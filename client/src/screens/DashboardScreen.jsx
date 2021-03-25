@@ -63,9 +63,15 @@ const DashboardScreen = ({ code }) => {
 		if (!accessToken) return;
 
 		let cancelSearch = false;
+		let apiSearchType;
+		// Setting the type of method to be called on the SpotifyWebAPI Object
+		if (searchType === TYPE_TRACKS) apiSearchType = "searchTracks";
+		if (searchType === TYPE_ARTISTS) apiSearchType = "searchTracks";
+		if (searchType === TYPE_PLAYLISTS) apiSearchType = "searchPlaylists";
+
 		switch (searchType) {
 			case TYPE_PLAYLISTS:
-				spotifyWebAPI.searchPlaylists(searchTerms).then((res) => {
+				spotifyWebAPI[apiSearchType](searchTerms).then((res) => {
 					if (cancelSearch) return;
 
 					setSearchResults(
@@ -89,11 +95,6 @@ const DashboardScreen = ({ code }) => {
 				});
 				break;
 			default:
-				let apiSearchType;
-				// Setting the type of method to be called on the SpotifyWebAPI Object
-				if (searchType === TYPE_TRACKS) apiSearchType = "searchTracks";
-				if (searchType === TYPE_ARTISTS) apiSearchType = "searchTracks";
-
 				spotifyWebAPI[apiSearchType](
 					`${searchType === TYPE_ARTISTS && "artist:"}
 					${searchTerms}`
